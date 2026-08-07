@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+.cache/
+.parcel-cache/
+.vite/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Coverage
+coverage/
+
+# Temporary files
+tmp/
+temp/
+
+# GIS / large local data
+*.gpkg
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.geojson
+*.tif
+*.tiff
+*.vrt
+
+# Local map/data exports
+data/
+geodata/
