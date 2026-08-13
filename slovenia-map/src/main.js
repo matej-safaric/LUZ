@@ -5,11 +5,12 @@ import Map from "ol/Map.js";
 import View from "ol/View.js";
 import TileLayer from "ol/layer/Tile.js";
 import OSM from "ol/source/OSM.js";
-import {fromLonLat} from "ol/proj.js";
+import {toLonLat, fromLonLat} from "ol/proj.js";
 
 // Cesium
 import {
   Viewer, 
+  Cartesian3
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
@@ -35,3 +36,23 @@ const viewer = new Viewer('map-3d', {
   timeline: false,
 });
 
+
+
+const button = document.getElementById("sync-button");
+
+button.addEventListener('click', () => {
+  const centerWebMercator = map2d.getView().getCenter();
+
+  const [longitude, latitude] = toLonLat(centerWebMercator);
+
+  viewer.camera.flyTo({
+    destination: Cartesian3.fromDegrees(
+      longitude, 
+      latitude,
+      10000,
+    ),
+  });
+
+  // Optional immediate teleport to destination
+  // viewer.camera.completeFlight()
+});
