@@ -10,7 +10,8 @@ import {toLonLat, fromLonLat} from "ol/proj.js";
 // Cesium
 import {
   Viewer, 
-  Cartesian3
+  Cartesian3,
+  Rectangle,
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
@@ -38,20 +39,23 @@ const viewer = new Viewer('map-3d', {
 
 
 
-const button = document.getElementById("sync-button");
 
-button.addEventListener('click', () => {
-  const centerWebMercator = map2d.getView().getCenter();
+map2d.on("moveend", () => {
+  const extent = map2d.getView().calculateExtent(map2d.getSize());
+  
+  // Convert extent to longitude/latitude
+  const southwest = toLonLat([extent[0], extent[1]]);
+  const northeast = toLonLat([extent[2], extent[3]]);
 
-  const [longitude, latitude] = toLonLat(centerWebMercator);
+
+  const west = southwest[0];
+  const south = southwest[1];
+  const east = northeast[0];
+  const north = northeast[1];
 
   viewer.camera.flyTo({
-    destination: Cartesian3.fromDegrees(
-      longitude, 
-      latitude,
-      10000,
-    ),
-  });
+    destination: Rectangle.fromDegrees(west, south, east, north)
+  })
 
   // Optional immediate teleport to destination
   // viewer.camera.completeFlight()
