@@ -16,6 +16,10 @@ import {
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
 
+
+
+
+// OL map:
 const map2d = new Map({
   target: 'map-2d',
 
@@ -31,7 +35,7 @@ const map2d = new Map({
   }),
 });
 
-
+// Cesium map:
 const viewer = new Viewer('map-3d', {
   animation: false,
   timeline: false,
@@ -40,7 +44,26 @@ const viewer = new Viewer('map-3d', {
 
 
 
-map2d.on("moveend", () => {
+
+const view2d = map2d.getView();
+
+let syncScheduled = false;
+
+view2d.on("change:center", () => {      // It seems enough for now to only consider 'change:center'
+  if (syncScheduled) {
+    return;
+  }
+
+  syncScheduled = true;
+
+  requestAnimationFrame(() => {
+    syncScheduled = false;
+    syncCesium();
+  });
+});
+
+
+let syncCesium = function() {
   const extent = map2d.getView().calculateExtent(map2d.getSize());
   
   // Convert extent to longitude/latitude
@@ -53,10 +76,9 @@ map2d.on("moveend", () => {
   const east = northeast[0];
   const north = northeast[1];
 
-  viewer.camera.flyTo({
-    destination: Rectangle.fromDegrees(west, south, east, north)
-  })
-
-  // Optional immediate teleport to destination
+  viewer.camera.setView({
+    destination: Rectangle.fromDegrees(west, south, east, north),
+  });
+  // Optional immediate teleport to destination:
   // viewer.camera.completeFlight()
-});
+};
