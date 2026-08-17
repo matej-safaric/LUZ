@@ -3,9 +3,12 @@ import "./style.css";
 // OpenLayers
 import Map from "ol/Map.js";
 import View from "ol/View.js";
+import GeoJSON from "ol/format/GeoJSON.js";
 import TileLayer from "ol/layer/Tile.js";
-import OSM from "ol/source/OSM.js";
+import VectorLayer from "ol/layer/Vector.js";
 import {toLonLat, fromLonLat} from "ol/proj.js";
+import OSM from "ol/source/OSM.js";
+import VectorSource from "ol/source/Vector.js";
 
 // Cesium
 import {
@@ -20,13 +23,28 @@ import "cesium/Build/Cesium/Widgets/widgets.css";
 
 
 // OL map:
+
+const baseLayer = new TileLayer({
+  source: new OSM(),
+});
+
+// // Additional 2D GeoJSON layer:
+
+const pointLayer = new VectorLayer({
+    source: new VectorSource({
+        url: "/data/ljubljanaPoint.geojson",
+
+        format: new GeoJSON(),
+    }),
+});
+
+
 const map2d = new Map({
   target: 'map-2d',
 
   layers: [
-    new TileLayer({
-      source: new OSM(),
-    }),
+    baseLayer,
+    pointLayer,
   ],
 
   view: new View({
@@ -44,6 +62,15 @@ const viewer = new Viewer('map-3d', {
 
 
 
+
+
+
+
+
+
+/* =============================
+    SYNCHRONIZATION OF 3D TO 2D
+   ============================= */
 
 const view2d = map2d.getView();
 
