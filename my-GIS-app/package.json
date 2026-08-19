@@ -4,12 +4,20 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "dev": "vite"
   },
   "devDependencies": {
-    "vite": "^7.1.11"
+    "vite": "^7.3.6"
   },
   "dependencies": {
-    "ol": "latest"
-  }
+    "cesium": "^1.144.0",
+    "ol": "^10.10.0"
+  },
+  "description": "This example demonstrates how the `ol` package can be used with [Vite](https://vitejs.dev/).",
+  "main": "main.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
 }
