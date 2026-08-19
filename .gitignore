@@ -49,3 +49,5 @@ temp/
 # Local map/data exports
 data/
 geodata/
+slovenia-map/public/pointcloud/
+slovenia-map/public/data/
