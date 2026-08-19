@@ -51,3 +51,6 @@ data/
 geodata/
 slovenia-map/public/pointcloud/
 slovenia-map/public/data/
+
+# py3dtiles virtual environment
+slovenia-map/py3dtiles-env/
