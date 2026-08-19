@@ -15,6 +15,9 @@ import {
   Viewer, 
   Cartesian3,
   Rectangle,
+  Cesium3DTileset,
+  Cartographic,
+  Math,
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
@@ -57,14 +60,40 @@ const map2d = new Map({
 const viewer = new Viewer('map-3d', {
   animation: false,
   timeline: false,
+  globe: false,
 });
 
 
 
+loadPointCloud();
 
+async function loadPointCloud() {
+    const tileset = await Cesium3DTileset.fromUrl(
+        "/pointcloud/tiles/tileset.json"
+    );
 
+    viewer.scene.primitives.add(tileset);
 
+    await viewer.zoomTo(tileset);
+    // const cartographic = Cartographic.fromCartesian(
+    //     viewer.camera.position
+    // );
 
+    // console.log(
+    //     "Camera longitude:",
+    //     Math.toDegrees(cartographic.longitude)
+    // );
+
+    // console.log(
+    //     "Camera latitude:",
+    //     Math.toDegrees(cartographic.latitude)
+    // );
+
+    // console.log(
+    //     "Camera height:",
+    //     cartographic.height
+    // );
+  };
 
 
 
