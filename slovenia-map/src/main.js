@@ -24,7 +24,6 @@ import Style from "ol/style/Style.js";
 import {
   Viewer, 
   Cartesian3,
-  Rectangle,
   Cesium3DTileset,
   Cartographic,
   Math as CesiumMath,
@@ -186,7 +185,6 @@ async function loadPointCloud() {
     viewer.scene.postRender.addEventListener(() => {
         if (!_pointCloudTileset) return;
 
-        // Calculate relative height
         const height = viewer.camera.positionCartographic.height - 281.68;
 
         let targetSSE;
@@ -245,30 +243,112 @@ function lerp(a, b, t) {
 
 
 /* ========================================================
+    PREVENT FALLING THROUGH THE POINT CLOUD
+
+    3D Tile point clouds have no collision -- by default the camera
+    can fly straight through them. This keeps the camera above the
+    cloud's actual surface: every frame, right before rendering, it
+    picks the point cloud directly under the crosshair -- below you
+    when looking down, ahead of you when looking more level -- and if
+    the camera has drifted closer to that surface than
+    MIN_DISTANCE_TO_SURFACE, pushes it back out along the line from
+    the surface to the camera until it's exactly that far away again.
+
+    Because this runs every single frame regardless of what moved the
+    camera -- mouse wheel zoom, orbiting, our own sync code -- any
+    zoom-in that would cross the floor gets continuously cancelled
+    back out to it, which is what gives the "asymptotic" feel: you
+    can get arbitrarily close to the surface but never past it, and
+    the floor itself tracks wherever the point cloud's surface
+    actually is under the crosshair rather than being one fixed
+    altitude for the whole scene.
+   ======================================================== */
+
+const MIN_DISTANCE_TO_SURFACE = 2; // meters
+
+viewer.scene.preRender.addEventListener(() => {
+    if (!_pointCloudTileset) return; // nothing loaded yet to collide with
+
+    const canvas = viewer.scene.canvas;
+    const center = new Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2);
+
+    // Point clouds render as discrete points with gaps between them
+    // (more so the closer you get), so a single pixel at dead-center
+    // often misses entirely -- sample a small cluster around the
+    // crosshair and keep whichever hit is nearest to the camera.
+    const SAMPLE_OFFSETS = [
+        [0, 0],
+        [10, 0],
+        [-10, 0],
+        [0, 10],
+        [0, -10],
+    ];
+
+    let nearestPoint;
+    let nearestDistance = Infinity;
+
+    for (const [dx, dy] of SAMPLE_OFFSETS) {
+        const pixel = new Cartesian2(center.x + dx, center.y + dy);
+        const picked = viewer.scene.pickPosition(pixel);
+        if (!picked) continue;
+
+        const distance = Cartesian3.distance(viewer.camera.position, picked);
+        if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearestPoint = picked;
+        }
+    }
+
+    if (!nearestPoint || nearestDistance >= MIN_DISTANCE_TO_SURFACE) return;
+
+    // Too close: push the camera back out along the (surface -> camera)
+    // direction until it's exactly MIN_DISTANCE_TO_SURFACE away.
+    const pushBackDirection = Cartesian3.normalize(
+        Cartesian3.subtract(viewer.camera.position, nearestPoint, new Cartesian3()),
+        new Cartesian3()
+    );
+    viewer.camera.position = Cartesian3.add(
+        nearestPoint,
+        Cartesian3.multiplyByScalar(pushBackDirection, MIN_DISTANCE_TO_SURFACE, new Cartesian3()),
+        new Cartesian3()
+    );
+});
+
+
+
+/* ========================================================
     SYNC BUTTON
     The button will, when pressed, set the view of the 3d
     map to the view of the 2d map.
+
+    This reuses the exact same resolution <-> distance formula as the
+    continuous 2D -> 3D sync below (see the ZOOM section of
+    syncCesiumFrom2D) instead of Cesium's own camera.setView({
+    destination: Rectangle }) fitting. That built-in fit sizes the
+    camera to whatever CESIUM's own viewport aspect ratio happens to
+    be, which isn't necessarily the same aspect ratio view2d used to
+    calculate the extent in the first place -- if the two map panels
+    aren't pixel-for-pixel the same shape, that mismatch alone can
+    make the button's result look "more zoomed" than the 2D map, even
+    though nothing else about the sync is malfunctioning. Reusing the
+    shared formula sidesteps the question entirely: the button and
+    the continuous sync are now guaranteed to agree, by construction.
    ======================================================== */
 
 const button = document.getElementById('sync-button');
 button.addEventListener('click', () => {
-  const extent = map2d.getView().calculateExtent(map2d.getSize());
+  const [lon, lat] = toLonLat(view2d.getCenter());
+  const groundResolution = view2d.getResolution() * Math.cos(CesiumMath.toRadians(lat));
 
-  // Convert extent to longitude/latitude
-  const southwest = toLonLat([extent[0], extent[1]]);
-  const northeast = toLonLat([extent[2], extent[3]]);
-
-
-  const west = southwest[0];
-  const south = southwest[1];
-  const east = northeast[0];
-  const north = northeast[1];
+  const canvas = viewer.scene.canvas;
+  const fovy = viewer.camera.frustum.fovy;
+  const height = (groundResolution * canvas.clientHeight) / (2 * Math.tan(fovy / 2));
 
   viewer.camera.setView({
-    destination: Rectangle.fromDegrees(west, south, east, north),
-    //orientation: new HeadingPitchRoll()
+    destination: Cartesian3.fromDegrees(lon, lat, height, ellipsoid),
+    orientation: { heading: 0.0, pitch: CesiumMath.toRadians(-90), roll: 0.0 },
   });
-})
+});
 
 
 
@@ -430,7 +510,18 @@ function syncCesiumFrom2D() {
   const fovy = viewer.camera.frustum.fovy;
   const targetDistance = (groundResolution * canvas.clientHeight) / (2 * Math.tan(fovy / 2));
 
-  const currentDistance = Cartesian3.distance(viewer.camera.position, currentGroundPoint);
+  // Distance from the camera to where it's now pointing -- note this
+  // uses targetGroundPoint (where the pan step above just aimed the
+  // camera), not the pre-pan currentGroundPoint. Using the stale
+  // pre-pan point here was a real bug: after moving the camera
+  // sideways by some pan vector delta, its distance to that old point
+  // is sqrt(height^2 + |delta|^2) -- always LARGER than the true
+  // height, never smaller. That made every pan look like the camera
+  // had drifted too far away and needed to move closer, even when
+  // zoom hadn't changed at all -- a one-directional bias that
+  // compounds with every single pan, which is exactly why the 3D map
+  // kept creeping more zoomed-in than the 2D one over time.
+  const currentDistance = Cartesian3.distance(viewer.camera.position, targetGroundPoint);
   const zoomMovement = currentDistance - targetDistance;
 
   // Plain subtraction, not a trig ratio -- this can't blow up the way
