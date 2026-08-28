@@ -57,10 +57,21 @@ export function setupMapSync(map2d, viewer) {
 
     const view2d = map2d.getView();
 
-    // viewer was created with `globe: false` above, so there's no
-    // viewer.scene.globe to hang an ellipsoid off of -- use the WGS84
-    // ellipsoid directly instead, wherever one is needed below.
-    const ellipsoid = Ellipsoid.WGS84;
+    //                        | viewer was created with `globe: false` above, so there's no
+    //    Claude's comment -> | viewer.scene.globe to hang an ellipsoid off of -- use the WGS84
+    //                        | ellipsoid directly instead, wherever one is needed below.
+    //
+    // In actuality, we will create a custom ellipsoid that has slightly
+    // larger radii. In this way, we make sure that our intersection tests
+    // return similar results to what we would want from intersecting 
+    // the point cloud itself.
+    const HEIGHT_DIFFERENCE = 281.68;
+
+    const ellipsoid = new Ellipsoid(
+        Ellipsoid.WGS84.radii.x + HEIGHT_DIFFERENCE, 
+        Ellipsoid.WGS84.radii.y + HEIGHT_DIFFERENCE, 
+        Ellipsoid.WGS84.radii.z + HEIGHT_DIFFERENCE
+    )
 
     // Shared re-entrancy guards between this direction and 3D -> 2D
     // below. Each handler calls its own markSyncing*() right before
