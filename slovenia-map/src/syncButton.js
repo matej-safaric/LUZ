@@ -8,12 +8,6 @@ import {
 // OL
 import { toLonLat } from "ol/proj";
 
-// Other modules
-import { viewer } from "./main";
-import { map2d } from "./main";
-
-
-
 
 
 
@@ -38,11 +32,15 @@ import { map2d } from "./main";
     the continuous sync are now guaranteed to agree, by construction.
    ======================================================== */
 
-const ellipsoid = Ellipsoid.WGS84;
-const view2d = map2d.getView();
 
-const button = document.getElementById('sync-button');
-button.addEventListener('click', () => {
+export function setupSyncButton(viewer, view2d) {
+  const button = document.getElementById('sync-button');
+  button.addEventListener('click', callSyncButton(viewer, view2d));
+}
+
+export function callSyncButton(viewer, view2d) {
+  const ellipsoid = Ellipsoid.WGS84;
+
   const [lon, lat] = toLonLat(view2d.getCenter());
   const groundResolution = view2d.getResolution() * Math.cos(CesiumMath.toRadians(lat));
 
@@ -54,5 +52,4 @@ button.addEventListener('click', () => {
     destination: Cartesian3.fromDegrees(lon, lat, height, ellipsoid),
     orientation: { heading: 0.0, pitch: CesiumMath.toRadians(-90), roll: 0.0 },
   });
-});
-
+};
