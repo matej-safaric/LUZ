@@ -7,6 +7,7 @@ import { createCesiumViewer } from "./cesiumMapInit";
 import { setupMapSync } from "./syncMaps";
 import { createOLMap } from "./olMapInit";
 import { setupSyncButton, callSyncButton } from "./syncButton";
+import { setupPointMode } from "./pointMode";
 
 
 export let viewer = null;
@@ -54,3 +55,47 @@ toggle3DButton.addEventListener('click', () => {
 
     threeDVisible = !threeDVisible;
 });
+
+
+
+
+
+
+let pointModeActive = false;
+let pointMode = null;
+
+const togglePointModeButton = document.getElementById('point-mode-button');
+togglePointModeButton.addEventListener('click', () => {
+    if (!threeDVisible) return;
+    
+    pointModeActive = !pointModeActive;
+    // console.log(pointModeActive);
+    // if (!pointMode) {
+    //     pointMode = setupPointMode(viewer, pointModeActive);
+    // }
+    if (!pointModeActive) {
+        stopPointMode();
+        togglePointModeButton.textContent = 'Enter Point mode';
+    } else {
+        startPointMode();
+        togglePointModeButton.textContent = 'Exit point mode';
+    }
+        
+});
+
+
+
+function startPointMode() {
+    // If this is first launch, setup pointMode:
+    if (!pointMode) {
+        pointMode = setupPointMode(viewer, pointModeActive);
+    } else {
+        pointMode.enable();
+    }
+}
+
+function stopPointMode() {
+    if (pointMode) {
+        pointMode.disable();
+    }
+}

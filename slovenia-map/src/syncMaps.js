@@ -349,7 +349,7 @@ export function setupMapSync(map2d, viewer) {
             // Tilted: no single zoom represents this view, so show the
             // ground extent actually visible instead of a misleading center.
             const extent = boundingExtent(footprintCorners.map((lonLat) => fromLonLat(lonLat)));
-            view2d.fit(extent, { padding: [20, 20, 20, 20], duration: 0, maxZoom: 19 });
+            view2d.fit(extent, { duration: 0, maxZoom: 19 });
         }
     }
 

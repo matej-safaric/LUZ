@@ -26,6 +26,7 @@ export function createCesiumViewer() {
     animation: false,
     timeline: false,
     globe: false,
+    selectionIndicator: false,
     });
 
 
