@@ -96,7 +96,30 @@ export function setupPointMode(viewer, mainPointModeActive) {
 
         const picked = pickNearestPointCloudHit(pixel, viewer);
         if (picked) {
+            const pickedCoordinates = {
+                x: Math.round((picked.x + Number.EPSILON) * 100) / 100,
+                y: Math.round((picked.y + Number.EPSILON) * 100) / 100,
+                z: Math.round((picked.z + Number.EPSILON) * 100) / 100,
+            };
             hoverEntity.position = picked;
+            hoverEntity.label = {
+                text: `(${pickedCoordinates.x}, ${pickedCoordinates.y}, ${pickedCoordinates.z})`,
+                font: "14px sans-serif",
+                fillColor: Color.WHITE,
+                outlineColor: Color.BLACK,
+                outlineWidth: 3,
+                backgroundColor: Color.BLACK,
+                showBackground: true,
+
+                // Position the label next to the point
+                style: LabelStyle.FILL_AND_OUTLINE,
+                pixelOffset: new Cartesian2(10, -10),
+
+                // Optional: keep it visible at a reasonable distance
+                verticalOrigin: VerticalOrigin.BOTTOM,
+                horizontalOrigin: HorizontalOrigin.LEFT
+            }
+
             hoverEntity.show = true;
         } else {
             hoverEntity.show = false;
@@ -116,6 +139,12 @@ export function setupPointMode(viewer, mainPointModeActive) {
             const picked = pickNearestPointCloudHit(click.position, viewer);
             if (!picked) return; // clicked somewhere with no point cloud under the cursor
 
+            const pickedCoordinates = {
+                x: Math.round((picked.x + Number.EPSILON) * 100) / 100,
+                y: Math.round((picked.y + Number.EPSILON) * 100) / 100,
+                z: Math.round((picked.z + Number.EPSILON) * 100) / 100,
+            };
+
             const entity = viewer.entities.add({
                 position: picked,
                 point: {
@@ -126,11 +155,13 @@ export function setupPointMode(viewer, mainPointModeActive) {
                     disableDepthTestDistance: 0,//Number.POSITIVE_INFINITY,
                 },
                 label: {
-                    text: "52.5200° N, 13.4050° E",
+                    text: `(${pickedCoordinates.x}, ${pickedCoordinates.y}, ${pickedCoordinates.z})`,
                     font: "14px sans-serif",
                     fillColor: Color.WHITE,
                     outlineColor: Color.BLACK,
                     outlineWidth: 3,
+                    backgroundColor: Color.BLACK,
+                    showBackground: true,
 
                     // Position the label next to the point
                     style: LabelStyle.FILL_AND_OUTLINE,
