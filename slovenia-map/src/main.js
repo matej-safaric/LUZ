@@ -8,6 +8,7 @@ import { setupMapSync } from "./syncMaps";
 import { createOLMap } from "./olMapInit";
 import { setupSyncButton, callSyncButton } from "./syncButton";
 import { setupPointMode } from "./pointMode";
+import { setupLineMode } from "./lineMode";
 
 
 export let viewer = null;
@@ -16,6 +17,10 @@ let mapSync = null;
 // Create OL map:
 export let map2d = createOLMap();
 
+
+
+
+// 3D view:
 
 const app = document.getElementById('app');
 const toggle3DButton = document.getElementById('toggle-3d-button');
@@ -58,7 +63,7 @@ toggle3DButton.addEventListener('click', () => {
 
 
 
-
+// Point Mode:
 
 
 let pointModeActive = false;
@@ -97,5 +102,44 @@ function startPointMode() {
 function stopPointMode() {
     if (pointMode) {
         pointMode.disable();
+    }
+}
+
+
+
+// Line Mode:
+
+let lineModeActive = false;
+let lineMode = null;
+
+const toggleLineModeButton = document.getElementById('line-mode-button');
+toggleLineModeButton.addEventListener('click', () => {
+    if (!threeDVisible) return;
+    
+    lineModeActive = !lineModeActive;
+    if (!lineModeActive) {
+        stopLineMode();
+        toggleLineModeButton.textContent = 'Enter Line mode';
+    } else {
+        startLineMode();
+        toggleLineModeButton.textContent = 'Exit Line mode';
+    }
+        
+});
+
+
+
+function startLineMode() {
+    // If this is first launch, setup lineMode:
+    if (!lineMode) {
+        lineMode = setupLineMode(viewer, lineModeActive);
+    } else {
+        lineMode.enable();
+    }
+}
+
+function stopLineMode() {
+    if (lineMode) {
+        lineMode.disable();
     }
 }
