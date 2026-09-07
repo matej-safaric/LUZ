@@ -9,8 +9,17 @@ import {
     VerticalOrigin,
     HorizontalOrigin,
     CallbackProperty,
+    Cartographic,
+    Math as CesiumMath,
  } from "cesium";
 
+import { fromLonLat } from "ol/proj";
+import Feature from "ol/Feature";
+import { LineString, Point } from "ol/geom";
+import Style from "ol/style/Style";
+import CircleStyle from "ol/style/Circle";
+import Fill from "ol/style/Fill";
+import Stroke from "ol/style/Stroke";
 
 /* ========================================================
     POINT MODE
@@ -44,6 +53,29 @@ let nextPointId = 1;
 const POINT_COLOR = Color.fromCssColorString("#5993d6");
 const HOVER_COLOR = Color.fromCssColorString("#e06c58").withAlpha(0.85);
 const POINT_OUTLINE_COLOR = Color.fromCssColorString("#0d1114");
+
+
+const lineModeStyle_point = new Style({
+    image: new CircleStyle({
+        radius: 8,
+        fill: new Fill({
+            color: '#5993d6',
+        }),
+        stroke: new Stroke({
+            color: '#0d1114',
+            width: 2
+        })
+    })
+});
+
+const lineModeStyle_line = new Style({
+    stroke: new Stroke({
+    color: '#5993d6',
+    width: 3,
+    })
+})
+
+
 
  
 let previousPoint = null;
@@ -85,7 +117,7 @@ const CENTER_SAMPLE_OFFSET = [[0, 0]];
 
 
 
-export function setupLineMode(viewer, mainLineModeActive) {
+export function setupLineMode(viewer, map2d, mainLineModeActive) {
     lineModeActive = mainLineModeActive;
     // A single reusable entity for the hover highlight -- repositioned   
     // (and shown/hidden) on every hover update rather than recreated.
@@ -140,6 +172,7 @@ export function setupLineMode(viewer, mainLineModeActive) {
                 }
                 return [previousPointPosition, hoverPickedPosition];
             }, false),
+            material: Color.fromCssColorString('#5993d6')        
         },
     });   
 
@@ -274,7 +307,7 @@ export function setupLineMode(viewer, mainLineModeActive) {
                             picked,
                         ],
                         width: 2,
-                    }
+                        material: Color.fromCssColorString('#5993d6')                    }
                 });
                 const distance = Cartesian3.distance(previousPointPosition, picked);
                 const midpoint = Cartesian3.midpoint(previousPointPosition, picked, new Cartesian3());
@@ -293,6 +326,56 @@ export function setupLineMode(viewer, mainLineModeActive) {
                         style: LabelStyle.FILL_AND_OUTLINE,
                     }
                 });
+
+                // Also draw the point onto the OL map:
+                const cartographic = Cartographic.fromCartesian(picked);
+
+                const lon = CesiumMath.toDegrees(cartographic.longitude);
+                const lat = CesiumMath.toDegrees(cartographic.latitude);
+
+                const mapPointXY = fromLonLat([lon, lat]);
+                const olPoint = new Feature({
+                    geometry: new Point(mapPointXY)
+                });
+
+                // We must fetch the 'drawings' layer's source from map2d:
+                const layers = map2d.getLayers();
+                const layer = layers.getArray().find(
+                    layer => layer.get('id') === 'drawings'
+                );
+                const drawingSource = layer?.getSource();
+
+                olPoint.setStyle(lineModeStyle_point);
+                drawingSource.addFeature(olPoint);
+
+
+
+
+                // Draw the line as well onto the OL map:
+                // We must repeat the above computation for the previousPoint:
+                const cartographicPrevious = Cartographic.fromCartesian(previousPointPosition);
+
+                const lonPrevious = CesiumMath.toDegrees(cartographicPrevious.longitude);
+                const latPrevious = CesiumMath.toDegrees(cartographicPrevious.latitude);
+
+                const mapPointXYPrevious = fromLonLat([lonPrevious, latPrevious]);
+                const olPointPrevious = new Feature({
+                    geometry: new Point(mapPointXYPrevious)
+                });
+
+                olPointPrevious.setStyle(lineModeStyle_point);
+                drawingSource.addFeature(olPointPrevious);
+
+                console.log(mapPointXYPrevious);
+                console.log(mapPointXY);
+                console.log(mapPointXYPrevious[0]);
+
+                const olLine = new Feature({
+                    geometry: new LineString([[mapPointXYPrevious[0], mapPointXYPrevious[1]], [mapPointXY[0], mapPointXY[1]]])
+                });
+
+                olLine.setStyle(lineModeStyle_line);
+                drawingSource.addFeature(olLine);
             } else {
                 entity = viewer.entities.add({
                     position: picked,
@@ -321,6 +404,28 @@ export function setupLineMode(viewer, mainLineModeActive) {
                         horizontalOrigin: HorizontalOrigin.LEFT
                     },
                 });
+                // Also draw the point onto the OL map:
+                const cartographic = Cartographic.fromCartesian(picked);
+
+                const lon = CesiumMath.toDegrees(cartographic.longitude);
+                const lat = CesiumMath.toDegrees(cartographic.latitude);
+
+                const mapPointXY = fromLonLat([lon, lat]);
+                const olPoint = new Feature({
+                    geometry: new Point(mapPointXY)
+                });
+
+                // We must fetch the 'drawings' layer's source from map2d:
+                const layers = map2d.getLayers();
+                const layer = layers.getArray().find(
+                    layer => layer.get('id') === 'drawings'
+                );
+                const drawingSource = layer?.getSource();
+                if (!drawingSource) {console.log('...what')};
+
+                olPoint.setStyle(lineModeStyle_point);
+                drawingSource.addFeature(olPoint);
+
             }
 
             selectedPoints.push({ id: nextPointId++, position: picked, entity });

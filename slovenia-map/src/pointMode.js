@@ -10,6 +10,16 @@ import {
     HorizontalOrigin,
  } from "cesium";
 
+import Point from 'ol/geom/Point.js';
+import Feature from "ol/Feature";
+import { fromLonLat } from "ol/proj";
+import { Math as CesiumMath } from "cesium";
+import { Cartographic } from "cesium";
+import Style from "ol/style/Style";
+import CircleStyle from "ol/style/Circle";
+import Fill from "ol/style/Fill";
+import Stroke from "ol/style/Stroke";
+
 
 /* ========================================================
     POINT MODE
@@ -44,14 +54,25 @@ const POINT_COLOR = Color.fromCssColorString("#59c7d6");
 const HOVER_COLOR = Color.fromCssColorString("#e0a458").withAlpha(0.85);
 const POINT_OUTLINE_COLOR = Color.fromCssColorString("#0d1114");
 
- 
+const pointModeStyle = new Style({
+    image: new CircleStyle({
+        radius: 8,
+        fill: new Fill({
+            color: '#59c7d6',
+        }),
+        stroke: new Stroke({
+            color: '#0d1114',
+            width: 2
+        })
+    })
+});
 
 
 
 
 
 
-export function setupPointMode(viewer, mainPointModeActive) {
+export function setupPointMode(viewer, map2d, mainPointModeActive) {
     pointModeActive = mainPointModeActive;
     // A single reusable entity for the hover highlight -- repositioned   
     // (and shown/hidden) on every hover update rather than recreated.
@@ -174,6 +195,27 @@ export function setupPointMode(viewer, mainPointModeActive) {
             });
 
             selectedPoints.push({ id: nextPointId++, position: picked, entity });
+            
+            // Also draw the point onto the OL map:
+            const cartographic = Cartographic.fromCartesian(picked);
+
+            const lon = CesiumMath.toDegrees(cartographic.longitude);
+            const lat = CesiumMath.toDegrees(cartographic.latitude);
+
+            const mapPointXY = fromLonLat([lon, lat]);
+            const olPoint = new Feature({
+                geometry: new Point(mapPointXY)
+            });
+
+            // We must fetch the 'drawings' layer's source from map2d:
+            const layers = map2d.getLayers();
+            const layer = layers.getArray().find(
+                layer => layer.get('id') === 'drawings'
+            );
+            const drawingSource = layer?.getSource();
+
+            olPoint.setStyle(pointModeStyle);
+            drawingSource.addFeature(olPoint);
         }, ScreenSpaceEventType.LEFT_CLICK);
     }
 
