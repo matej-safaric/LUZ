@@ -6,6 +6,8 @@ import {
   Math as CesiumMath,
   Cartesian2,
   HeadingPitchRange,
+  GeoJsonDataSource,
+  Color,
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
@@ -34,9 +36,24 @@ export function createCesiumViewer() {
 
 
     loadPointCloud();
+    const roadsGeoJSONSource = GeoJsonDataSource.load("/data/draped.geojson", {
+        stroke: Color.RED,
+        fill: Color.RED.withAlpha(0.4),
+        strokeWidth: 2,
+        show: false
+        }
+    ).then((roadsGeoJSONSource) => {
+
+        roadsGeoJSONSource.name = "roadsGeoJSONSource";
+
+        viewer.dataSources.add(roadsGeoJSONSource);
+
+    });
+    // roadsGeoJSONSource.name = 'roadsGeoJSONSource'
+    // viewer.dataSources.add(roadsGeoJSONSource);
+    
     // ─────────────────────────────────────────────────────────────
     //  Optimized Point Cloud Loader
-    //  Drop-in replacement for loadPointCloud()
     //
     //  Changes from original:
     //    • Progressive LOD — coarser at distance, finer when close
