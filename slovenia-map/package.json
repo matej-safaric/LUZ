@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predev": "node scripts/generateLayersManifest.mjs",
+    "prebuild": "node scripts/generateLayersManifest.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
