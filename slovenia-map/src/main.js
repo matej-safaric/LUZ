@@ -169,9 +169,11 @@ function setupUI() {
         if (newState) {
         // Checked
         roadsDataSource.show = true;
+        roadsButton.textContent = "✓ Roads"
         } else {
         // Unchecked
         roadsDataSource.show = false;
+        roadsButton.textContent = "Roads"
         }
     })
 
@@ -188,9 +190,11 @@ function setupUI() {
         if (newState) {
         // Checked
         polygonsDataSource.show = true;
+        polygonsButton.textContent = "✓ Polygons"
         } else {
         // Unchecked
         polygonsDataSource.show = false;
+        polygonsButton.textContent = "Polygons"
         }
     })
 };

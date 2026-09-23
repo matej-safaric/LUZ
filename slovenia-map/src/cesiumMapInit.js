@@ -47,7 +47,7 @@ export function createCesiumViewer() {
         roadsGeoJSONSource.name = "roadsGeoJSONSource";
 
         viewer.dataSources.add(roadsGeoJSONSource);
-
+        roadsGeoJSONSource.show = false;
     });
     // roadsGeoJSONSource.name = 'roadsGeoJSONSource'
     // viewer.dataSources.add(roadsGeoJSONSource);
@@ -103,7 +103,7 @@ export function createCesiumViewer() {
             duration: 2.0,
             offset: new HeadingPitchRange(
                 0,                          // heading: north-up
-                CesiumMath.toRadians(-45), // pitch: looking down 45°
+                CesiumMath.toRadians(-90), // pitch: looking down 45°
                 boundingSphere.radius * 2.5 // distance from center
             ),
         });
