@@ -173,7 +173,7 @@ export function setupPointMode(viewer, map2d, mainPointModeActive) {
                     color: POINT_COLOR,
                     outlineColor: POINT_OUTLINE_COLOR,
                     outlineWidth: 2,
-                    disableDepthTestDistance: 0,//Number.POSITIVE_INFINITY,
+                    disableDepthTestDistance: 0,
                 },
                 label: {
                     text: `(${pickedCoordinates.x}, ${pickedCoordinates.y}, ${pickedCoordinates.z})`,

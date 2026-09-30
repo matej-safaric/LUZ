@@ -11,10 +11,6 @@ import {
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
-// Only needed if MOL_STAVBE_VIS.geojson's coordinates are in a projected
-// CRS (e.g. Slovenia D96/TM, EPSG:3794) rather than WGS84 lon/lat already.
-// If the file already loads in the right place on the globe, you can
-// remove this import and the crsNames registration below.
 import proj4 from "proj4";
 
 const GEOJSON_PATH_ROADS_MOL = "/data/draped.geojson";
@@ -43,8 +39,11 @@ export function createCesiumViewer() {
 
 
 
-
+    // First load the point cloud. The function loadPointCLoud 
+    // is defined later in this file 
     loadPointCloud();
+
+    // Then load all other DataSources
     const roadsMOLGeoJSONSource = GeoJsonDataSource.load(GEOJSON_PATH_ROADS_MOL, {
         stroke: Color.RED,
         fill: Color.RED.withAlpha(0.4),
@@ -82,6 +81,8 @@ export function createCesiumViewer() {
                 roads_OS_DC_GeoJSONSource.show = false;
             });
         })
+
+
 
     // MOL_STAVBE_VIS.geojson's coordinates are in Slovenia D96/TM
     // (EPSG:3794) meters, e.g. [462127.96, 100544.84] — not WGS84
@@ -155,6 +156,9 @@ export function createCesiumViewer() {
         viewer.dataSources.add(drapedMeshGeoJSONSource);
         drapedMeshGeoJSONSource.show = false;
     });
+    
+
+
     
     // ─────────────────────────────────────────────────────────────
     //  Optimized Point Cloud Loader

@@ -22,25 +22,25 @@ import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
 
 /* ========================================================
-    POINT MODE
+    LINE MODE
 
     Lets the user click points directly onto the point cloud's actual
     surface. While active:
       - a marker follows the mouse, snapped to whichever point cloud
         surface is actually under the cursor (hidden whenever the
         cursor isn't over any rendered point cloud geometry, e.g.
-        empty sky or a not-yet-loaded area) -- reuses the same
-        pickNearestPointCloudHit sampling as the collision guard above
+        empty sky or a not-yet-loaded area)
       - clicking commits the currently hovered point: it's added to
         selectedPoints and gets a permanent marker of its own
+      - sequentially clicked points get connected with a polyline
 
     Deliberately does NOT fall back to the flat ellipsoid the way
-    pickGroundPoint does elsewhere in this file -- a placed point is
+    pickGroundPoint does elsewhere in this project -- a placed point is
     meant to BE a real point cloud sample for later measurement, not
     an approximate guess, so if nothing is actually hit, hovering
     shows no marker and clicking does nothing.
 
-    selectedPoints is what the planned distance/area/volume tools will
+    selectedPoints is what the potential distance/area/volume tools will
     read from. Each entry keeps the entity alongside its position so a
     future "remove point" / "undo" action just needs to delete that
     entity and splice the array -- no separate lookup needed.
@@ -108,7 +108,7 @@ const FULL_SAMPLE_OFFSETS = [
 // Cheap single-sample check used for hover, which runs on every animation
 // frame the mouse moves. scene.pick + scene.pickPosition are each an
 // offscreen render pass, so doing all 9 offsets every frame (18 render
-// passes/frame) is what was causing the hover marker/line to lag behind
+// passes/frame) would cause the hover marker/line to lag behind
 // the cursor. Most of the time the cursor is over solid point-cloud
 // surface, so a single center sample is enough; the full sweep is only
 // used as a fallback when that misses (see pickNearestPointCloudHit below).
@@ -282,7 +282,7 @@ export function setupLineMode(viewer, map2d, mainLineModeActive) {
                         color: POINT_COLOR,
                         outlineColor: POINT_OUTLINE_COLOR,
                         outlineWidth: 2,
-                        disableDepthTestDistance: 0,//Number.POSITIVE_INFINITY,
+                        disableDepthTestDistance: 0,
                     },
                     label: {
                         text: `(${pickedCoordinates.x}, ${pickedCoordinates.y}, ${pickedCoordinates.z})`,
@@ -366,10 +366,6 @@ export function setupLineMode(viewer, map2d, mainLineModeActive) {
                 olPointPrevious.setStyle(lineModeStyle_point);
                 drawingSource.addFeature(olPointPrevious);
 
-                console.log(mapPointXYPrevious);
-                console.log(mapPointXY);
-                console.log(mapPointXYPrevious[0]);
-
                 const olLine = new Feature({
                     geometry: new LineString([[mapPointXYPrevious[0], mapPointXYPrevious[1]], [mapPointXY[0], mapPointXY[1]]])
                 });
@@ -421,7 +417,6 @@ export function setupLineMode(viewer, map2d, mainLineModeActive) {
                     layer => layer.get('id') === 'drawings'
                 );
                 const drawingSource = layer?.getSource();
-                if (!drawingSource) {console.log('...what')};
 
                 olPoint.setStyle(lineModeStyle_point);
                 drawingSource.addFeature(olPoint);

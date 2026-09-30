@@ -6,7 +6,6 @@ import "cesium/Build/Cesium/Widgets/widgets.css";
 import { createCesiumViewer } from "./cesiumMapInit";
 import { setupMapSync } from "./syncMaps";
 import { createOLMap } from "./olMapInit";
-import { setupSyncButton, callSyncButton } from "./syncButton";
 import { setupPointMode } from "./pointMode";
 import { setupLineMode } from "./lineMode";
 import { setupLayerControls } from "./layerControls";
@@ -34,8 +33,9 @@ async function init() {
 }
 
 function setupUI() {
-    // 3D view:
-
+    /* ========================================================
+                            3D VIEW
+    ======================================================== */    
     const app = document.getElementById('app');
     const toggle3DButton = document.getElementById('toggle-3d-button');
 
@@ -47,10 +47,8 @@ function setupUI() {
         if (!viewer) {
             viewer = createCesiumViewer();
             mapSync = setupMapSync(map2d, viewer);
-            setupSyncButton(viewer, map2d.getView());
             mapSync.enable()
         } else {
-            callSyncButton(viewer, map2d.getView());
             mapSync.enable();
         };
     };
@@ -78,8 +76,11 @@ function setupUI() {
 
 
 
-    // Point Mode:
 
+
+    /* ========================================================
+                            POINT MODE
+    ======================================================== */    
     let pointModeActive = false;
     let pointMode = null;
 
@@ -114,7 +115,9 @@ function setupUI() {
 
 
 
-    // Line Mode:
+    /* ========================================================
+                           LINE MODE
+    ======================================================== */    
 
     let lineModeActive = false;
     let lineMode = null;
@@ -151,7 +154,9 @@ function setupUI() {
 
 
 
-    // 3D Layers (roads, polygons)
+    /* ========================================================
+                3D LAYERS (ROADS, POLYGONS, ETC.)
+    ======================================================== */    
     const roadsMOLButton = document.getElementById("roadsMOL-button");
     const roads_OS_DC_Button = document.getElementById("roads_OS_DC-button");
     const polygonsButton = document.getElementById("polygons-button");
