@@ -448,7 +448,12 @@ Koda omogoča tudi razne dodatne parametre, ki so razloženi v kodi.
 
 Zdaj z besedami opišemo delovanje procesa "polaganja" GeoJSON podatkov na oblak točk. Osnovna ideja tega programa je, da za vsako točko v GeoJSON datoteki `input.geojson` poišče prvih $k$ najbližjih sosedov na oblaku točk (ni zagotovljeno, da bo točka v GeoJSON datoteki sovpadala z neko točko na oblaku točk). Nato izračuna predvideno višino te točke na podlagi višin njenih sosedov tako, da uporabi obteženo povprečje višin sosedov. Povedano s formulo:
 $$
-\text{višina točke }v = \frac{\sum_{i=1}^k \frac{1}{d(v, w_{i})^p} \cdot \text{višina točke }w_{i}}{\sum_{i=1}^{k} \frac{1}{d(v, w_{i})^p}}
+\text{višina točke } v =
+\frac{
+    \sum_{i=1}^{k} \frac{1}{d(v,w_i)^p} \cdot \text{višina točke } w_i
+}{
+    \sum_{i=1}^{k} \frac{1}{d(v,w_i)^p}
+}
 $$
 
 ## 7.2 Datoteka `syncMaps.js`
