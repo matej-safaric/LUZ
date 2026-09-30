@@ -414,6 +414,19 @@ python shp_to_geojson.py input.shp output.geojson
 Ta ukaz ustvari datoteko `output.geojson` in vanjo zapiše podatke iz `input.shp`. Ta ukaz sprejema tudi Shapefile v obliki `.zip` mape. Obstajajo pomožni argumenti, kot je recimo `--pretty`, ki poleg konverzije podatkov tudi formatira GeoJSON datoteko in jo s tem naredi bolj berljivo. Za vse pomožne argumente v kodi piše njihova funkcionalnost.
 
 
+## 5.3 Še o 2D podatkih
+
+Podatki, ki jih prikažemo s knjižnico OpenLayers so prav tako lahko odgovorni za počasno delovanje programa, zato jih pretvorimo v COG različice (Cloud Optimised GeoTIFF) s pomočjo knjižnice GDAL. Le-to je precej nadležno namestiti (mi smo to naredili preko package managerja Anaconda), ampak na Windowsih žal ni enostavne poti. Za pretvorbo v COG smo uporabili ukaz v `cmd.exe` (to naredimo v Anaconda okolju GDAL): 
+```
+gdal_translate -of COG -co COMPRESS=deflate pot/do/input.tif pot/do/output.tif
+```
+
+V našem konkretnem primeru smo uporabili ukaz:
+```
+gdal_translate -of COG -co COMPRESS=deflate public/data/layers2D/nDSM_layer.tif public/data/layers2D/nDSM_layer_cog.tif
+```
+in nato preimenovali izhodno datoteko nazaj v `nDSM_layer.tif`.
+
 # 6. Konverzija CRS
 
 Kot rečeno, Cesium ne podpira vseh koordinatnih sistemov. Eden izmed takih je npr. EPSG:3794, ki je pogosto v rabi pri slovenskih podatkih. V prejšnjem razdelku smo že povedali, da lahko za `.laz` datoteke CRS pretvorimo v istem koraku kot pretvorba v 3D Tiles. V tem razdelku povemo, kako lahko splošneje naredimo pretvorbo med koordinatnimi sistemi v JavaScriptu. To še posebej pride prav, ko imamo opravka z GeoJSON datotekami, saj Cesium za take datoteke, v katerih CRS ni eksplicitno napisan, privzema standardni WGS84 koordinatni sistem. 
