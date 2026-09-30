@@ -2,8 +2,6 @@ Namen tega projekta je bil sestaviti osnovni 3-dimenzionalni pregledovalnik. Osr
 
 Za bolj pregleden prikaz te datoteke predlagam program Obsidian.
 
----
-
 # 1. Navodila za zagon
 
 Odpremo `cmd.exe` in se z ukazom `cd` prestavimo v mapo `slovenia-map`. Nato uporabimo ukaz `npm run dev`, kar požene web development tool Vite. Kot odziv prejmemo:
@@ -94,9 +92,6 @@ Python koda, ki omogoča uporabniku, da v `cmd.exe` pretvori Shapefile datoteke 
 ###### drape_geojson_on_pointcloud.py
 Python koda, ki omogoča uporabniku, da v `cmd.exe` ob podanem oblaku točk v formatu `.laz` GeoJSON datoteke, ki vsebujejo le 2D informacije, opremi tudi s 3D podatki tako, da so dobljeni GeoJSON podatki "položeni" na oblak točk. Več o njenem delovanju in uporabi bralec najde v razdelku **Delovanje kode: drape_geojson_on_pointcloud.py**.
 
-
-
----
 # 3. Osnove CesiumJS
 
 ## 3.1 Objekt `Viewer`
@@ -315,8 +310,6 @@ viewer.scene.postRender.addEventListener(() => {
 ```
 
 Proces povrnitve k nižjemu SSE je zagotovljen s strani prejšnjega odseka kode. Ta koda zagotovi le, da se `maximumScreenSpaceError` primerno poveča glede na trenuten FPS.
-
----
 
 # 4. Development infrastruktura z Vite
 
