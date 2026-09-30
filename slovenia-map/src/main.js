@@ -152,28 +152,51 @@ function setupUI() {
 
 
     // 3D Layers (roads, polygons)
-    const roadsButton = document.getElementById("roads-button");
+    const roadsMOLButton = document.getElementById("roadsMOL-button");
+    const roads_OS_DC_Button = document.getElementById("roads_OS_DC-button");
     const polygonsButton = document.getElementById("polygons-button");
+    const drapedMeshButton = document.getElementById("draped-mesh-button");
 
 
-    roadsButton.addEventListener("click", () => {
+    roadsMOLButton.addEventListener("click", () => {
         if (!threeDVisible) return;
 
-        const roadsDataSource = viewer.dataSources.getByName('roadsGeoJSONSource')[0];
+        const roadsMOLDataSource = viewer.dataSources.getByName('roadsMOLGeoJSONSource')[0];
 
-        const checked = roadsButton.getAttribute("aria-pressed") === "true";
+        const checked = roadsMOLButton.getAttribute("aria-pressed") === "true";
         const newState = !checked;
 
-        roadsButton.setAttribute("aria-pressed", newState);
+        roadsMOLButton.setAttribute("aria-pressed", newState);
 
         if (newState) {
         // Checked
-        roadsDataSource.show = true;
-        roadsButton.textContent = "✓ Roads"
+        roadsMOLDataSource.show = true;
+        roadsMOLButton.textContent = "✓ Roads MOL"
         } else {
         // Unchecked
-        roadsDataSource.show = false;
-        roadsButton.textContent = "Roads"
+        roadsMOLDataSource.show = false;
+        roadsMOLButton.textContent = "Roads MOL"
+        }
+    })
+
+    roads_OS_DC_Button.addEventListener("click", () => {
+        if (!threeDVisible) return;
+
+        const roads_OS_DC_DataSource = viewer.dataSources.getByName('roads_OS_DC_GeoJSONSource')[0];
+
+        const checked = roads_OS_DC_Button.getAttribute("aria-pressed") === "true";
+        const newState = !checked;
+
+        roads_OS_DC_Button.setAttribute("aria-pressed", newState);
+
+        if (newState) {
+        // Checked
+        roads_OS_DC_DataSource.show = true;
+        roads_OS_DC_Button.textContent = "✓ Roads OS DC 2026"
+        } else {
+        // Unchecked
+        roads_OS_DC_DataSource.show = false;
+        roads_OS_DC_Button.textContent = "Roads OS DC 2026"
         }
     })
 
@@ -195,6 +218,27 @@ function setupUI() {
         // Unchecked
         polygonsDataSource.show = false;
         polygonsButton.textContent = "Polygons"
+        }
+    })
+
+    drapedMeshButton.addEventListener("click", () => {
+        if (!threeDVisible) return;
+
+        const drapedMeshDataSource = viewer.dataSources.getByName('drapedMeshGeoJSONSource')[0];
+
+        const checked = drapedMeshButton.getAttribute("aria-pressed") === "true";
+        const newState = !checked;
+
+        drapedMeshButton.setAttribute("aria-pressed", newState);
+
+        if (newState) {
+        // Checked
+        drapedMeshDataSource.show = true;
+        drapedMeshButton.textContent = "✓ Draped mesh"
+        } else {
+        // Unchecked
+        drapedMeshDataSource.show = false;
+        drapedMeshButton.textContent = "Draped mesh"
         }
     })
 };

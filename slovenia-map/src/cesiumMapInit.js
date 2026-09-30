@@ -11,6 +11,15 @@ import {
 } from "cesium";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 
+// Only needed if MOL_STAVBE_VIS.geojson's coordinates are in a projected
+// CRS (e.g. Slovenia D96/TM, EPSG:3794) rather than WGS84 lon/lat already.
+// If the file already loads in the right place on the globe, you can
+// remove this import and the crsNames registration below.
+import proj4 from "proj4";
+
+const GEOJSON_PATH_ROADS_MOL = "/data/draped.geojson";
+const GEOJSON_PATH_OS_DC = "/data/OS_DC_2026.geojson";
+const GEOJSON_PATH_STAVBE_DRAPED = "/data/first_10_percent.geojson";
 
 
 
@@ -36,21 +45,116 @@ export function createCesiumViewer() {
 
 
     loadPointCloud();
-    const roadsGeoJSONSource = GeoJsonDataSource.load("/data/draped.geojson", {
+    const roadsMOLGeoJSONSource = GeoJsonDataSource.load(GEOJSON_PATH_ROADS_MOL, {
         stroke: Color.RED,
         fill: Color.RED.withAlpha(0.4),
         strokeWidth: 2,
-        show: false
         }
-    ).then((roadsGeoJSONSource) => {
+    ).then((roadsMOLGeoJSONSource) => {
 
-        roadsGeoJSONSource.name = "roadsGeoJSONSource";
+        roadsMOLGeoJSONSource.name = "roadsMOLGeoJSONSource";
 
-        viewer.dataSources.add(roadsGeoJSONSource);
-        roadsGeoJSONSource.show = false;
+        viewer.dataSources.add(roadsMOLGeoJSONSource);
+        roadsMOLGeoJSONSource.show = false;
     });
-    // roadsGeoJSONSource.name = 'roadsGeoJSONSource'
-    // viewer.dataSources.add(roadsGeoJSONSource);
+
+
+    const roads_OS_DC_GeoJSONSource = fetch(GEOJSON_PATH_OS_DC)
+        .then((response) => response.json())
+        .then((geojson) => {
+            if (!geojson.crs) {
+                geojson.crs = {
+                    type: "name",
+                    properties: { name: "urn:ogc:def:crs:EPSG::3794" },
+                };
+            }
+            return GeoJsonDataSource.load(geojson, {
+                stroke: Color.RED,
+                fill: Color.RED.withAlpha(0.4),
+                strokeWidth: 2,
+                show: false,
+                clampToGround: false,
+            })
+            .then((roads_OS_DC_GeoJSONSource) => {
+                roads_OS_DC_GeoJSONSource.name = "roads_OS_DC_GeoJSONSource";
+    
+                viewer.dataSources.add(roads_OS_DC_GeoJSONSource);
+                roads_OS_DC_GeoJSONSource.show = false;
+            });
+        })
+
+    // MOL_STAVBE_VIS.geojson's coordinates are in Slovenia D96/TM
+    // (EPSG:3794) meters, e.g. [462127.96, 100544.84] — not WGS84
+    // lon/lat. The file also has no "crs" member, and per the GeoJSON
+    // spec, coordinates with no declared crs are assumed to be WGS84.
+    //
+    // Register a transform for that CRS...
+
+    proj4.defs(
+        "EPSG:3794",
+        "+proj=tmerc +lat_0=0 +lon_0=15 +k=0.9999 +x_0=500000 +y_0=-5000000 +ellps=GRS80 +units=m +no_defs"
+    );
+    GeoJsonDataSource.crsNames["urn:ogc:def:crs:EPSG::3794"] = (coordinates) =>
+        Cartesian3.fromDegrees(...proj4("EPSG:3794", "WGS84", coordinates));
+
+    // ...then fetch the file ourselves and tag it with that CRS before
+    // handing it to GeoJsonDataSource, since the file itself never
+    // declares one. (If the data pipeline is later updated to add a
+    // "crs" member directly to MOL_STAVBE_VIS.geojson, this becomes a
+    // no-op and can be simplified back to GeoJsonDataSource.load(url).)
+    const polygonsGeoJSONSource = fetch("/data/MOL_STAVBE_VIS.geojson")
+        .then((response) => response.json())
+        .then((geojson) => {
+            if (!geojson.crs) {
+                geojson.crs = {
+                    type: "name",
+                    properties: { name: "urn:ogc:def:crs:EPSG::3794" },
+                };
+            }
+            return GeoJsonDataSource.load(geojson, {
+                stroke: Color.ORANGE,
+                fill: Color.ORANGE.withAlpha(0.4),
+                strokeWidth: 2,
+                show: false,
+                clampToGround: false,
+            });
+        })
+        .then((polygonsGeoJSONSource) => {
+            polygonsGeoJSONSource.name = "polygonsGeoJSONSource";
+
+            // Extrude each building polygon from the height VISINA_H3 up 
+            // to the height given by its VISINA_H2 property.
+            for (const entity of polygonsGeoJSONSource.entities.values) {
+                if (!entity.polygon) continue;
+
+                const topHeight = Number(entity.properties?.VISINA_H2?.getValue());
+                const bottomHeight = Number(entity.properties?.VISINA_H3?.getValue());
+                if (!Number.isFinite(topHeight)) continue; // skip features w/o a usable height
+                if (!Number.isFinite(bottomHeight)) continue; // skip features w/o a usable height
+
+
+                entity.polygon.height = bottomHeight;
+                entity.polygon.extrudedHeight = topHeight;
+                entity.polygon.perPositionHeight = false;
+            }
+
+            viewer.dataSources.add(polygonsGeoJSONSource);
+            polygonsGeoJSONSource.show = false;
+        });
+
+
+    const drapedMeshGeoJSONSource = GeoJsonDataSource.load(GEOJSON_PATH_STAVBE_DRAPED, {
+        stroke: Color.RED,
+        fill: Color.RED.withAlpha(0.4),
+        strokeWidth: 2,
+        }
+    ).then((drapedMeshGeoJSONSource) => {
+
+        drapedMeshGeoJSONSource.name = "drapedMeshGeoJSONSource";
+
+        viewer.dataSources.add(drapedMeshGeoJSONSource);
+        drapedMeshGeoJSONSource.show = false;
+    });
     
     // ─────────────────────────────────────────────────────────────
     //  Optimized Point Cloud Loader
