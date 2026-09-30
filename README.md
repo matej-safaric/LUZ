@@ -1,7 +1,5 @@
 Namen tega projekta je bil sestaviti osnovni 3-dimenzionalni pregledovalnik. Osrednjega pomena pri temu projektu sta bila samo prikazovanje 3D podatkov s pomočjo knjižnice CesiumJS ter sodelovanje oz. sinhronizacija 3D zemljevida z (že obstoječim) 2D zemljevidom.
 
-Za bolj pregleden prikaz te datoteke predlagam program Obsidian.
-
 # 1. Navodila za zagon
 
 Odpremo `cmd.exe` in se z ukazom `cd` prestavimo v mapo `slovenia-map`. Nato uporabimo ukaz `npm run dev`, kar požene web development tool Vite. Kot odziv prejmemo:
